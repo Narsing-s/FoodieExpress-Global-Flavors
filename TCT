@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FoodieExpress | Ultra Animated</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    :root {
+      --primary: #ff5400;
+      --secondary: #28a745;
+      --bg: #fffcf9;
+      --card-shadow: 0 15px 35px rgba(255, 84, 0, 0.1);
+      --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: var(--bg); overflow-x: hidden; scroll-behavior: smooth; }
+
+    /* Keyframes for entrance */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    /* Login Screen Animation */
+    #loginScreen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      animation: scaleIn 0.6s ease-out;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    #loginForm input {
+      width: 100%;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 15px;
+      border: 2px solid #eee;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    #loginForm input:focus { border-color: var(--primary); transform: scale(1.02); }
+
+    .btn-main {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 10px 20px rgba(255, 84, 0, 0.3);
+    }
+
+    .btn-main:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(255, 84, 0, 0.4); }
+
+    /* Home Screen */
+    .screen { display: none; opacity: 0; }
+    .screen.active { display: block; opacity: 1; }
+
+    header {
+      background: var(--primary);
+      padding: 20px 30px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 0 0 30px 30px;
+      margin-bottom: 30px;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    /* Restaurant Horizontal List */
+    .restaurant-list {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding: 10px 20px 30px;
+      scrollbar-width: none;
+    }
+
+    .restaurant-card {
+      min-width: 160px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      animation: fadeInUp 0.5s ease backwards;
+    }
+
+    .restaurant-card:hover { transform: translateY(-10px); box-shadow: var(--card-shadow); }
+    .restaurant-card.active { border: 3px solid var(--primary); transform: scale(1.05); }
+
+    .restaurant-card img { width: 100%; height: 100px; object-fit: cover; }
+
+    /* Food Grid */
+    #app { max-width: 1200px; margin: 0 auto; padding-bottom: 100px; }
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 30px;
+      padding: 20px;
+    }
+
+    .food-card {
+      background: white;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      transition: var(--transition);
+      animation: fadeInUp 0.6s ease backwards;
+    }
+
+    .food-card:hover { transform: translateY(-15px) rotate(1deg); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+
+    .food-card img { width: 100%; height: 220px; object-fit: cover; }
+
+    .food-info { padding: 25px; }
+
+    /* Cart Sidebar */
+    #cartSidebar {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 400px;
+      height: 100vh;
+      background: white;
+      z-index: 2000;
+      box-shadow: -10px 0 50px rgba(0,0,0,0.1);
+      transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #cartSidebar.open { right: 0; }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px;
+      margin: 10px;
+      background: #fff9f6;
+      border-radius: 15px;
+      animation: slideInRight 0.4s ease forwards;
+    }
+
+    /* Floating Cart Button */
+    #cartToggle {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 70px;
+      height: 70px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(255, 84, 0, 0.4);
+      z-index: 2001;
+      transition: var(--transition);
+    }
+
+    #cartToggle:hover { transform: scale(1.1) rotate(-10deg); }
+
+    .cart-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #333;
+      padding: 5px 10px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* Flying Item Animation Class */
+    .flying-item {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      font-size: 40px;
+      transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    @media (max-width: 450px) { #cartSidebar { width: 100%; } }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <section id="loginScreen" class="screen active">
+    <div class="login-box">
+      <h1 style="color:var(--primary); font-size: 2.5rem;">FoodieExpress</h1>
+      <p>Global Flavors at your Doorstep</p>
+      <form id="loginForm">
+        <input type="text" id="usernameInput" placeholder="Enter your name" required>
+        <button type="submit" class="btn-main">Get Started</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="homeScreen" class="screen">
+    <header>
+      <h2 id="welcomeText">Hi!</h2>
+      <button id="logoutBtn" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer;">Logout</button>
+    </header>
+    
+    <div style="padding: 0 20px;"><h3 style="margin-bottom:15px;">World Cuisines</h3></div>
+    <div class="restaurant-list" id="restaurants"></div>
+    
+    <div style="padding: 0 20px;"><h3 style="margin-bottom:20px;">Chef's Special</h3></div>
+    <div class="food-grid" id="foodGrid"></div>
+  </section>
+
+  <aside id="cartSidebar">
+    <div style="padding: 30px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+      <h3>Your Basket</h3>
+      <button id="closeCart" style="background:none; font-size: 24px; border:none; cursor:pointer;">✕</button>
+    </div>
+    <div id="cartList" style="flex-grow:1; overflow-y:auto;"></div>
+    <div style="padding: 30px; background: #fafafa; border-radius: 30px 30px 0 0;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span>Total Amount</span>
+        <strong id="grandTotal" style="font-size:1.5rem; color:var(--primary);">₹0</strong>
+      </div>
+      <button id="payBtn" class="btn-main" style="width:100%; background:var(--secondary);">Place Order</button>
+    </div>
+  </aside>
+
+  <div id="cartToggle">
+    🛒 <span class="cart-badge" id="cartCount">0</span>
+  </div>
+</div>
+
+<script>
+  // Data
+  const restaurants = [
+    { id: 'japan', name: "Tokyo Treats", img: "https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?auto=format&fit=crop&w=300" },
+    { id: 'italy', name: "Little Italy", img: "https://images.unsplash.com/photo-1498579150354-977475b7ea0b?auto=format&fit=crop&w=300" },
+    { id: 'mexico', name: "Taco Fiesta", img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=300" },
+    { id: 'france', name: "Paris Cafe", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300" }
+  ];
+
+  const foods = {
+    'japan': [
+      { id: 1, name: "Miso Ramen", price: 450, old: 600, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500" },
+      { id: 2, name: "Sushi Set", price: 899, old: 1100, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=500" }
+    ],
+    'italy': [
+      { id: 3, name: "Margherita Pizza", price: 349, old: 500, img: "https://images.unsplash.com/photo-1574071318508-1cdbad80ad50?auto=format&fit=crop&w=500" },
+      { id: 4, name: "Alfredo Pasta", price: 420, old: 550, img: "https://images.unsplash.com/photo-1645112481338-3562479f048b?auto=format&fit=crop&w=500" }
+    ],
+    'mexico': [
+      { id: 5, name: "Beef Tacos", price: 320, old: 450, img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=500" },
+      { id: 6, name: "Nachos Grande", price: 280, old: 400, img: "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=500" }
+    ],
+    'france': [
+      { id: 7, name: "Croissant Box", price: 199, old: 300, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500" },
+      { id: 8, name: "Macaron Set", price: 499, old: 700, img: "https://images.unsplash.com/photo-1569864358642-9d16197022c4?auto=format&fit=crop&w=500" }
+    ]
+  };
+
+  let selectedRest = 'japan';
+  let cart = [];
+
+  // Login Logic
+  document.getElementById('loginForm').onsubmit = (e) => {
+    e.preventDefault();
+    const name = document.getElementById('usernameInput').value;
+    document.getElementById('welcomeText').innerText = `Hello, ${name}!`;
+    
+    document.getElementById('loginScreen').style.transition = "0.5s";
+    document.getElementById('loginScreen').style.opacity = "0";
+    
+    setTimeout(() => {
+      document.getElementById('loginScreen').classList.remove('active');
+      document.getElementById('homeScreen').classList.add('active');
+      render();
+    }, 500);
+  };
+
+  // Rendering
+  function render() {
+    const restList = document.getElementById('restaurants');
+    restList.innerHTML = restaurants.map((r, index) => `
+      <div class="restaurant-card ${r.id === selectedRest ? 'active' : ''}" 
+           style="animation-delay: ${index * 0.1}s"
+           onclick="selectRest('${r.id}')">
+        <img src="${r.img}">
+        <div style="padding:10px; text-align:center; font-weight:600;">${r.name}</div>
+      </div>
+    `).join('');
+
+    const grid = document.getElementById('foodGrid');
+    grid.innerHTML = foods[selectedRest].map((f, index) => `
+      <div class="food-card" style="animation-delay: ${index * 0.15}s">
+        <div style="position:relative;">
+          <div style="position:absolute; top:10px; left:10px; background:var(--primary); color:white; padding:5px 10px; border-radius:10px; font-weight:bold; font-size:12px;">
+            ${Math.round((f.old - f.price)/f.old * 100)}% OFF
+          </div>
+          <img src="${f.img}">
+        </div>
+        <div class="food-info">
+          <h4 style="margin-bottom:10px;">${f.name}</h4>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="font-weight:700; color:var(--primary);">₹${f.price}</span>
+              <span style="text-decoration:line-through; color:#aaa; font-size:12px; margin-left:5px;">₹${f.old}</span>
+            </div>
+            <button class="btn-main" style="padding:10px 15px; font-size:12px;" onclick="addToCart(${f.id}, event)">Add +</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.selectRest = (id) => {
+    selectedRest = id;
+    render();
+  };
+
+  // Cart Logic + Flying Animation
+  window.addToCart = (id, event) => {
+    const foodItem = foods[selectedRest].find(f => f.id === id);
+    cart.push({...foodItem, cartId: Date.now()});
+    
+    // Flying Animation
+    const btn = event.target;
+    const btnRect = btn.getBoundingClientRect();
+    const cartRect = document.getElementById('cartToggle').getBoundingClientRect();
+    
+    const flying = document.createElement('div');
+    flying.className = 'flying-item';
+    flying.innerHTML = '🍱';
+    flying.style.left = btnRect.left + 'px';
+    flying.style.top = btnRect.top + 'px';
+    document.body.appendChild(flying);
+    
+    setTimeout(() => {
+      flying.style.left = cartRect.left + 'px';
+      flying.style.top = cartRect.top + 'px';
+      flying.style.opacity = '0';
+      flying.style.transform = 'scale(0.5) rotate(360deg)';
+    }, 50);
+
+    setTimeout(() => {
+      flying.remove();
+      updateCart();
+      // Little "bounce" for the cart icon
+      document.getElementById('cartToggle').style.transform = "scale(1.3)";
+      setTimeout(() => document.getElementById('cartToggle').style.transform = "scale(1)", 200);
+    }, 800);
+  };
+
+  function updateCart() {
+    document.getElementById('cartCount').innerText = cart.length;
+    const list = document.getElementById('cartList');
+    list.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div>
+          <strong>${item.name}</strong><br>
+          <span style="color:var(--primary);">₹${item.price}</span>
+        </div>
+        <button onclick="removeFromCart(${item.cartId})" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
+      </div>
+    `).join('');
+    
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    document.getElementById('grandTotal').innerText = `₹${total}`;
+  }
+
+  window.removeFromCart = (cid) => {
+    cart = cart.filter(i => i.cartId !== cid);
+    updateCart();
+  };
+
+  // UI Handlers
+  document.getElementById('cartToggle').onclick = () => {
+    document.getElementById('cartSidebar').classList.add('open');
+  };
+
+  document.getElementById('closeCart').onclick = () => {
+    document.getElementById('cartSidebar').classList.remove('open');
+  };
+
+  document.getElementById('logoutBtn').onclick = () => location.reload();
+  
+  document.getElementById('payBtn').onclick = () => {
+    if(!cart.length) return alert("Your cart is empty!");
+    alert("🚀 Order successful! Driving to you now.");
+    location.reload();
+  };
+</script>
+</body>
+</html>
