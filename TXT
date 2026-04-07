@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FoodieExpress | Global Flavors</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    
+    body { background: #fffcf9; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+    button { cursor: pointer; border: none; transition: 0.3s; }
+    
+    #app { max-width: 1200px; margin: 20px auto; padding: 0 15px 100px; flex-grow: 1; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Login Screen */
+    #loginScreen { max-width: 400px; margin: 100px auto; padding: 40px 30px; background: white; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.1); text-align: center; }
+    #loginForm { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+    #loginForm input { padding: 14px; border-radius: 12px; border: 2px solid #eee; font-size: 1rem; outline: none; }
+    #loginForm button { background: #ff5400; color: white; font-weight: 700; padding: 14px; border-radius: 12px; }
+
+    /* Header */
+    header { background: #ff5400; padding: 15px 25px; color: white; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; box-shadow: 0 4px 15px rgba(255,84,0,0.3); }
+    .header-btns { display: flex; gap: 10px; }
+    #logoutBtn, #trackBtn { background: rgba(255,255,255,0.2); color: white; padding: 6px 15px; border-radius: 10px; font-weight: 600; }
+
+    /* Restaurants Horizontal Scroll */
+    .restaurant-list { display: flex; gap: 20px; overflow-x: auto; padding: 10px 5px 25px; margin-bottom: 20px; scrollbar-width: none; }
+    .restaurant-list::-webkit-scrollbar { display: none; }
+    
+    .restaurant-card { min-width: 160px; background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); cursor: pointer; border: 3px solid transparent; transition: 0.3s; flex-shrink: 0; }
+    .restaurant-card.active { border-color: #ff5400; transform: translateY(-5px); }
+    .restaurant-card img { width: 100%; height: 100px; object-fit: cover; }
+    .restaurant-card .info { padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 600; }
+
+    /* Food Grid */
+    .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+    .food-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative; display: flex; flex-direction: column; height: 100%; }
+    .food-card img { width: 100%; height: 220px; object-fit: cover; background: #f0f0f0; }
+    .discount-badge { position: absolute; top: 15px; left: 15px; background: #ff3d00; color: white; padding: 5px 12px; border-radius: 10px; font-weight: 700; z-index: 1; font-size: 0.8rem; }
+    .food-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .rating { background: #fff4e5; color: #ff9500; padding: 4px 10px; border-radius: 8px; font-weight: 700; display: inline-block; margin-bottom: 8px; font-size: 0.8rem; width: fit-content; }
+    .food-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; line-height: 1.3; min-height: 2.6em; }
+    .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .price { font-size: 1.3rem; font-weight: 700; color: #ff5400; }
+    .old-price { text-decoration: line-through; color: #a0a0a0; font-size: 0.9rem; }
+    .add-btn { width: 100%; background: #ff5400; color: white; padding: 14px; border-radius: 14px; font-weight: 700; transition: 0.2s; }
+
+    /* Sidebars */
+    .sidebar { position: fixed; top: 0; right: -420px; width: 400px; height: 100vh; background: white; z-index: 2000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
+    .sidebar.open { right: 0; }
+    .sb-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .sb-body { flex-grow: 1; padding: 20px; overflow-y: auto; }
+
+    /* Payment Styles */
+    .payment-option { border: 2px solid #eee; border-radius: 15px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+    .payment-option.selected { border-color: #ff5400; background: #fff9f6; }
+    .payment-option b { display: block; font-size: 1rem; margin-bottom: 4px; }
+    .payment-option p { font-size: 0.8rem; color: #666; }
+
+    /* Tracking Styles */
+    .track-card { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 15px; border-left: 5px solid #ff5400; }
+    .status-line { margin-top: 10px; display: flex; justify-content: space-between; font-size: 0.75rem; color: #999; }
+    .status-line .active { color: #ff5400; font-weight: 700; }
+
+    /* Cart/Billing */
+    .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f9f9f9; }
+    .billing-section { padding: 20px; background: #fafafa; border-top: 1px solid #eee; }
+    .coupon-box { display: flex; gap: 10px; margin-bottom: 15px; }
+    .coupon-box input { flex-grow: 1; padding: 12px; border-radius: 10px; border: 1.5px solid #eee; outline: none; }
+    .bill-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px; color: #555; }
+    .bill-total { font-size: 1.3rem; font-weight: 700; color: #333; margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px; }
+    
+    #cartToggle { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: #ff5400; border-radius: 50%; color: white; font-size: 26px; z-index: 1001; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(255,84,0,0.4); }
+
+    @media (max-width: 450px) { .sidebar { width: 100%; right: -100%; } }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <section id="loginScreen" class="screen active">
+    <h1 style="color:#ff5400; font-size: 2.5rem;">FoodieExpress</h1>
+    <p style="color:#666; margin-bottom: 20px;">Global Cuisines Delivered Fast</p>
+    <form id="loginForm">
+      <input type="text" id="usernameInput" placeholder="Enter your name" required>
+      <button type="submit">Explore Menu</button>
+    </form>
+  </section>
+
+  <section id="homeScreen" class="screen">
+    <header>
+      <h2 id="welcomeText">FoodieExpress</h2>
+      <div class="header-btns">
+        <button id="trackBtn">🚚 Tracking</button>
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </header>
+    
+    <h3 style="margin-bottom:15px; font-weight: 600;">World Cuisines</h3>
+    <div class="restaurant-list" id="restaurants"></div>
+    <h3 style="margin-bottom:20px; font-weight: 600;">Popular Dishes</h3>
+    <div class="food-grid" id="foodGrid"></div>
+  </section>
+
+  <aside id="cartSidebar" class="sidebar">
+    <div class="sb-header">
+      <h3>Your Basket</h3>
+      <button onclick="closeSidebars()" style="background:none; font-size:30px; color:#ff5400;">&times;</button>
+    </div>
+    <div id="cartList" class="sb-body"></div>
+    <div class="billing-section">
+      <div class="coupon-box"><input type="text" id="couponInput" placeholder="Promo Code"><button onclick="applyCoupon()">Apply</button></div>
+      <div class="bill-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
+      <div class="bill-row"><span>Delivery</span><span id="deliveryFee">₹0</span></div>
+      <div class="bill-row" id="discountRow" style="display:none; color: #28a745;"><span>Promo Applied</span><span id="discountAmt">-₹0</span></div>
+      <div class="bill-row bill-total"><span>Total</span><span id="grandTotal">₹0</span></div>
+      <button onclick="goToPayment()" style="width:100%; background:#ff5400; color:white; padding:16px; border-radius:12px; font-weight:700; margin-top:15px;">Continue to Payment</button>
+    </div>
+  </aside>
+
+  <aside id="paymentSidebar" class="sidebar">
+    <div class="sb-header">
+      <h3>Choose Payment</h3>
+      <button onclick="closeSidebars()" style="background:none; font-size:30px;">&times;</button>
+    </div>
+    <div class="sb-body">
+      <div class="payment-option" onclick="selectPayment('cod', this)">
+        <b>Cash on Delivery (COD)</b>
+        <p>Pay with cash when your food arrives.</p>
+      </div>
+      <div class="payment-option" onclick="selectPayment('upi', this)">
+        <b>UPI (GPay / PhonePe)</b>
+        <p>Instant mobile payment.</p>
+      </div>
+      <div class="payment-option" onclick="selectPayment('card', this)">
+        <b>Credit / Debit Card</b>
+        <p>Secure online transaction.</p>
+      </div>
+      <button id="placeOrderBtn" style="width:100%; background:#28a745; color:white; padding:16px; border-radius:12px; font-weight:700; margin-top:20px; font-size:1.1rem;">Place Order</button>
+    </div>
+  </aside>
+
+  <aside id="trackingSidebar" class="sidebar">
+    <div class="sb-header">
+      <h3>Live Tracking</h3>
+      <button onclick="closeSidebars()" style="background:none; font-size:30px;">&times;</button>
+    </div>
+    <div id="trackingList" class="sb-body">
+        <p style="text-align:center; color:#999; margin-top:50px;">No active orders.</p>
+    </div>
+  </aside>
+
+  <button id="cartToggle">🛒</button>
+</div>
+
+<script>
+  const restaurants = [
+    { id: 'japan', name: "Tokyo Treats", distance: 5, img: "https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?auto=format&fit=crop&w=300" },
+    { id: 'italy', name: "Little Italy", distance: 3, img: "https://images.unsplash.com/photo-1498579150354-977475b7ea0b?auto=format&fit=crop&w=300" },
+    { id: 'mexico', name: "Taco Fiesta", distance: 8, img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=300" }
+  ];
+
+  const foods = {
+    'japan': [{ id: 1, name: "Premium Miso Ramen", price: 450, old: 600, rating: 4.8, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500" }],
+    'italy': [{ id: 4, name: "Hand-Tossed Margherita", price: 349, old: 500, rating: 4.7, img: "https://images.unsplash.com/photo-1574071318508-1cdbad80ad50?auto=format&fit=crop&w=500" }],
+    'mexico': [{ id: 7, name: "Street Style Tacos", price: 320, old: 450, rating: 4.4, img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=500" }]
+  };
+
+  let selectedRest = 'japan';
+  let cart = [];
+  let orders = [];
+  let selectedMethod = null;
+  let appliedCoupon = null;
+
+  document.getElementById('loginForm').onsubmit = (e) => {
+    e.preventDefault();
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('homeScreen').classList.add('active');
+    document.getElementById('welcomeText').textContent = "Hi, " + document.getElementById('usernameInput').value;
+    render();
+  };
+
+  function render() {
+    document.getElementById('restaurants').innerHTML = restaurants.map(r => `
+      <div class="restaurant-card ${r.id === selectedRest ? 'active' : ''}" onclick="changeRest('${r.id}')">
+        <img src="${r.img}"><div class="info">${r.name}<br><small>${r.distance} km</small></div>
+      </div>`).join('');
+
+    document.getElementById('foodGrid').innerHTML = foods[selectedRest].map(f => `
+      <div class="food-card">
+        <div class="discount-badge">${Math.round((f.old - f.price) / f.old * 100)}% OFF</div>
+        <img src="${f.img}">
+        <div class="food-info">
+          <div><div class="rating">★ ${f.rating}</div><div class="food-name">${f.name}</div></div>
+          <div><div class="price-row"><span class="price">₹${f.price}</span><span class="old-price">₹${f.old}</span></div>
+          <button class="add-btn" onclick="addToCart(${f.id})">Add to Basket</button></div>
+        </div>
+      </div>`).join('');
+  }
+
+  window.changeRest = (id) => { selectedRest = id; render(); };
+
+  window.addToCart = (id) => {
+    const item = foods[selectedRest].find(f => f.id === id);
+    cart.push({...item, cartId: Date.now(), restId: selectedRest});
+    updateCart();
+    document.getElementById('cartSidebar').classList.add('open');
+  };
+
+  function updateCart() {
+    const list = document.getElementById('cartList');
+    list.innerHTML = cart.length ? cart.map(i => `
+      <div class="cart-item">
+        <div><b>${i.name}</b><br>₹${i.price}</div>
+        <button onclick="removeFromCart(${i.cartId})" style="color:red; background:none;">✕</button>
+      </div>`).join('') : '<p style="text-align:center; color:#999;">Empty basket</p>';
+
+    const subtotal = cart.reduce((s, i) => s + i.price, 0);
+    const delivery = cart.length ? 40 : 0;
+    let disc = appliedCoupon ? (subtotal * 0.1) : 0;
+
+    document.getElementById('subtotal').textContent = `₹${subtotal}`;
+    document.getElementById('deliveryFee').textContent = `₹${delivery}`;
+    document.getElementById('grandTotal').textContent = `₹${subtotal + delivery - disc}`;
+  }
+
+  window.removeFromCart = (cid) => { cart = cart.filter(i => i.cartId !== cid); updateCart(); };
+
+  window.applyCoupon = () => {
+    if(document.getElementById('couponInput').value.toUpperCase() === "SAVE10") {
+        appliedCoupon = true;
+        document.getElementById('discountRow').style.display = 'flex';
+        document.getElementById('discountAmt').textContent = "-10%";
+        updateCart();
+    }
+  };
+
+  window.closeSidebars = () => {
+    document.querySelectorAll('.sidebar').forEach(s => s.classList.remove('open'));
+  };
+
+  window.goToPayment = () => {
+    if(!cart.length) return alert("Cart is empty");
+    closeSidebars();
+    document.getElementById('paymentSidebar').classList.add('open');
+  };
+
+  window.selectPayment = (method, el) => {
+    selectedMethod = method;
+    document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+    el.classList.add('selected');
+  };
+
+  document.getElementById('placeOrderBtn').onclick = () => {
+    if(!selectedMethod) return alert("Select a payment method");
+    
+    const newOrder = {
+        id: "#FE" + Math.floor(1000 + Math.random() * 9000),
+        status: "Preparing",
+        items: cart.length
+    };
+    orders.unshift(newOrder);
+    cart = [];
+    updateCart();
+    closeSidebars();
+    renderTracking();
+    document.getElementById('trackingSidebar').classList.add('open');
+    
+    // Simulate Status Update
+    setTimeout(() => { orders[0].status = "On the Way"; renderTracking(); }, 10000);
+  };
+
+  function renderTracking() {
+    document.getElementById('trackingList').innerHTML = orders.map(o => `
+        <div class="track-card">
+            <b>Order ${o.id}</b>
+            <p>${o.items} Items • Secured via ${selectedMethod.toUpperCase()}</p>
+            <div class="status-line">
+                <span class="${o.status === 'Preparing' ? 'active' : ''}">Confirmed</span> ➔ 
+                <span class="${o.status === 'Preparing' ? 'active' : ''}">Cooking</span> ➔ 
+                <span class="${o.status === 'On the Way' ? 'active' : ''}">Delivery</span>
+            </div>
+        </div>`).join('');
+  }
+
+  document.getElementById('cartToggle').onclick = () => document.getElementById('cartSidebar').classList.toggle('open');
+  document.getElementById('trackBtn').onclick = () => document.getElementById('trackingSidebar').classList.toggle('open');
+  document.getElementById('logoutBtn').onclick = () => location.reload();
+</script>
+</body>
+</html>
