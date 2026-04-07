@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FoodieExpress | Global Flavors</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    
+    body { background: #fffcf9; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+    button { cursor: pointer; border: none; transition: 0.3s; }
+    
+    #app { max-width: 1200px; margin: 20px auto; padding: 0 15px 100px; flex-grow: 1; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Login Screen */
+    #loginScreen { max-width: 400px; margin: 100px auto; padding: 40px 30px; background: white; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.1); text-align: center; }
+    #loginForm { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+    #loginForm input { padding: 14px; border-radius: 12px; border: 2px solid #eee; font-size: 1rem; outline: none; }
+    #loginForm button { background: #ff5400; color: white; font-weight: 700; padding: 14px; border-radius: 12px; }
+
+    /* Header */
+    header { background: #ff5400; padding: 15px 25px; color: white; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; box-shadow: 0 4px 15px rgba(255,84,0,0.3); }
+    #logoutBtn { background: rgba(255,255,255,0.2); color: white; padding: 6px 15px; border-radius: 10px; font-weight: 600; }
+
+    /* Restaurants Horizontal Scroll */
+    .restaurant-list { display: flex; gap: 20px; overflow-x: auto; padding: 10px 5px 25px; margin-bottom: 20px; scrollbar-width: none; }
+    .restaurant-list::-webkit-scrollbar { display: none; }
+    
+    .restaurant-card { min-width: 160px; background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); cursor: pointer; border: 3px solid transparent; transition: 0.3s; flex-shrink: 0; }
+    .restaurant-card.active { border-color: #ff5400; transform: translateY(-5px); }
+    .restaurant-card img { width: 100%; height: 100px; object-fit: cover; }
+    .restaurant-card .info { padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 600; }
+
+    /* Food Grid - Guaranteed Equal Height Panels */
+    .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+    
+    .food-card { 
+        background: white; border-radius: 24px; overflow: hidden; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative; 
+        display: flex; flex-direction: column; height: 100%; 
+    }
+    
+    .food-card img { width: 100%; height: 220px; object-fit: cover; background: #f0f0f0; }
+    
+    .discount-badge { position: absolute; top: 15px; left: 15px; background: #ff3d00; color: white; padding: 5px 12px; border-radius: 10px; font-weight: 700; z-index: 1; font-size: 0.8rem; }
+    
+    .food-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    
+    .rating { background: #fff4e5; color: #ff9500; padding: 4px 10px; border-radius: 8px; font-weight: 700; display: inline-block; margin-bottom: 8px; font-size: 0.8rem; width: fit-content; }
+    
+    .food-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; line-height: 1.3; min-height: 2.6em; } /* Ensures 2 lines of text height */
+    
+    .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .price { font-size: 1.3rem; font-weight: 700; color: #ff5400; }
+    .old-price { text-decoration: line-through; color: #a0a0a0; font-size: 0.9rem; }
+    
+    .add-btn { width: 100%; background: #ff5400; color: white; padding: 14px; border-radius: 14px; font-weight: 700; transition: 0.2s; }
+    .add-btn:hover { background: #e64a00; transform: scale(1.02); }
+
+    /* Cart Sidebar */
+    #cartSidebar { position: fixed; top: 0; right: -420px; width: 400px; height: 100vh; background: white; z-index: 2000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
+    #cartSidebar.open { right: 0; }
+    .cart-header { padding: 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    #cartList { flex-grow: 1; padding: 20px; overflow-y: auto; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f9f9f9; }
+
+    /* Billing */
+    .billing-section { padding: 20px; background: #fafafa; border-top: 1px solid #eee; }
+    .coupon-box { display: flex; gap: 10px; margin-bottom: 15px; }
+    .coupon-box input { flex-grow: 1; padding: 12px; border-radius: 10px; border: 1.5px solid #eee; outline: none; }
+    .coupon-box input:focus { border-color: #ff5400; }
+    .coupon-box button { background: #333; color: white; padding: 0 20px; border-radius: 10px; font-weight: 600; }
+    
+    .bill-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px; color: #555; }
+    .bill-total { font-size: 1.3rem; font-weight: 700; color: #333; margin-top: 12px; border-top: 2px solid #eee; padding-top: 12px; }
+    
+    #cartToggle { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: #ff5400; border-radius: 50%; color: white; font-size: 26px; z-index: 1001; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(255,84,0,0.4); }
+
+    @media (max-width: 450px) {
+        #cartSidebar { width: 100%; right: -100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <section id="loginScreen" class="screen active">
+    <h1 style="color:#ff5400; font-size: 2.5rem;">FoodieExpress</h1>
+    <p style="color:#666; margin-bottom: 20px;">Global Cuisines Delivered Fast</p>
+    <form id="loginForm">
+      <input type="text" id="usernameInput" placeholder="Enter your name" required>
+      <button type="submit">Explore Menu</button>
+    </form>
+  </section>
+
+  <section id="homeScreen" class="screen">
+    <header>
+      <h2 id="welcomeText">FoodieExpress</h2>
+      <button id="logoutBtn">Logout</button>
+    </header>
+    
+    <h3 style="margin-bottom:15px; font-weight: 600;">World Cuisines</h3>
+    <div class="restaurant-list" id="restaurants"></div>
+    
+    <h3 style="margin-bottom:20px; font-weight: 600;">Popular Dishes</h3>
+    <div class="food-grid" id="foodGrid"></div>
+  </section>
+
+  <aside id="cartSidebar">
+    <div class="cart-header">
+      <h3>Your Basket</h3>
+      <button id="closeCart" style="background:none; font-size:30px; color:#ff5400;">&times;</button>
+    </div>
+    <div id="cartList"></div>
+    
+    <div class="billing-section">
+      <div class="coupon-box">
+        <input type="text" id="couponInput" placeholder="Promo Code (SAVE10 / WELCOME50)">
+        <button onclick="applyCoupon()">Apply</button>
+      </div>
+      <div id="couponMessage" style="font-size: 0.75rem; margin-bottom: 10px; font-weight: 600;"></div>
+      
+      <div class="bill-row"><span>Items Subtotal</span><span id="subtotal">₹0</span></div>
+      <div class="bill-row"><span>Delivery Fee (Distance)</span><span id="deliveryFee">₹0</span></div>
+      <div class="bill-row" id="discountRow" style="display:none; color: #28a745; font-weight: 600;"><span>Promo Applied</span><span id="discountAmt">-₹0</span></div>
+      
+      <div class="bill-row bill-total"><span>Total</span><span id="grandTotal">₹0</span></div>
+      
+      <button id="payBtn" style="width:100%; background:#28a745; color:white; padding:16px; border-radius:12px; font-weight:700; margin-top:15px; font-size:1.1rem;">Place Order</button>
+    </div>
+  </aside>
+
+  <button id="cartToggle">🛒</button>
+</div>
+
+<script>
+  const restaurants = [
+    { id: 'japan', name: "Tokyo Treats", distance: 5, img: "https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?auto=format&fit=crop&w=300" },
+    { id: 'italy', name: "Little Italy", distance: 3, img: "https://images.unsplash.com/photo-1498579150354-977475b7ea0b?auto=format&fit=crop&w=300" },
+    { id: 'mexico', name: "Taco Fiesta", distance: 8, img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=300" },
+    { id: 'middleeast', name: "Desert Oasis", distance: 4, img: "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&w=300" },
+    { id: 'america', name: "NY Grills", distance: 6, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=300" },
+    { id: 'france', name: "Parisian Bakery", distance: 2, img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300" }
+  ];
+
+  const foods = {
+    'japan': [
+      { id: 1, name: "Premium Miso Ramen", price: 450, old: 600, rating: 4.8, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500" },
+      { id: 2, name: "Salmon Sushi Platter (8pc)", price: 899, old: 1200, rating: 4.9, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=500" },
+      { id: 3, name: "Crispy Vegetable Tempura", price: 299, old: 400, rating: 4.5, img: "https://images.unsplash.com/photo-1615361413105-22b557049416?auto=format&fit=crop&w=500" }
+    ],
+    'italy': [
+      { id: 4, name: "Hand-Tossed Margherita", price: 349, old: 500, rating: 4.7, img: "https://images.unsplash.com/photo-1574071318508-1cdbad80ad50?auto=format&fit=crop&w=500" },
+      { id: 5, name: "Creamy Fettuccine Alfredo", price: 420, old: 550, rating: 4.6, img: "https://images.unsplash.com/photo-1645112481338-3562479f048b?auto=format&fit=crop&w=500" },
+      { id: 6, name: "Classic Tiramisu", price: 250, old: 350, rating: 4.9, img: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=500" }
+    ],
+    'mexico': [
+      { id: 7, name: "Street Style Tacos (Set of 3)", price: 320, old: 450, rating: 4.4, img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=500" },
+      { id: 8, name: "Loaded Beef Nachos", price: 280, old: 400, rating: 4.5, img: "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?auto=format&fit=crop&w=500" },
+      { id: 9, name: "Chicken Enchiladas", price: 399, old: 550, rating: 4.3, img: "https://images.unsplash.com/photo-1534352956279-b4238ad747e4?auto=format&fit=crop&w=500" }
+    ],
+    'middleeast': [
+      { id: 10, name: "Authentic Chicken Shawarma", price: 199, old: 280, rating: 4.8, img: "https://images.unsplash.com/photo-1662116765994-1e30063f689e?auto=format&fit=crop&w=500" },
+      { id: 11, name: "Hummus with Fresh Pita", price: 240, old: 320, rating: 4.6, img: "https://images.unsplash.com/photo-1577906030551-53697e87019c?auto=format&fit=crop&w=500" },
+      { id: 12, name: "Grilled Lamb Kofta", price: 550, old: 750, rating: 4.7, img: "https://images.unsplash.com/photo-1529692236671-f1f6e9460272?auto=format&fit=crop&w=500" }
+    ],
+    'america': [
+      { id: 13, name: "Double Cheese BBQ Burger", price: 299, old: 450, rating: 4.9, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500" },
+      { id: 14, name: "Loaded Chili Cheese Fries", price: 180, old: 250, rating: 4.5, img: "https://images.unsplash.com/photo-1585109649139-366815a0d713?auto=format&fit=crop&w=500" },
+      { id: 15, name: "Old Fashioned Apple Pie", price: 210, old: 300, rating: 4.7, img: "https://images.unsplash.com/photo-1568571780765-9276ac4b754e?auto=format&fit=crop&w=500" }
+    ],
+    'france': [
+      { id: 16, name: "Buttery Croissants (Box of 2)", price: 150, old: 220, rating: 4.8, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500" },
+      { id: 17, name: "Colorful Macarons (Set of 6)", price: 499, old: 700, rating: 4.9, img: "https://images.unsplash.com/photo-1569864358642-9d16197022c4?auto=format&fit=crop&w=500" },
+      { id: 18, name: "Quiche Lorraine", price: 320, old: 450, rating: 4.4, img: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=500" }
+    ]
+  };
+
+  let currentUser = null;
+  let selectedRest = 'japan';
+  let cart = [];
+  let appliedCoupon = null;
+
+  document.getElementById('loginForm').onsubmit = (e) => {
+    e.preventDefault();
+    currentUser = document.getElementById('usernameInput').value.trim();
+    if(currentUser) {
+        document.getElementById('loginScreen').classList.remove('active');
+        document.getElementById('homeScreen').classList.add('active');
+        document.getElementById('welcomeText').textContent = `Hello, ${currentUser}`;
+        render();
+    }
+  };
+
+  function render() {
+    // Restaurants
+    document.getElementById('restaurants').innerHTML = restaurants.map(r => `
+      <div class="restaurant-card ${r.id === selectedRest ? 'active' : ''}" onclick="changeRest('${r.id}')">
+        <img src="${r.img}">
+        <div class="info">${r.name}<br><small>${r.distance} km</small></div>
+      </div>`).join('');
+
+    // Food Items
+    document.getElementById('foodGrid').innerHTML = foods[selectedRest].map(f => {
+      const discount = Math.round((f.old - f.price) / f.old * 100);
+      return `
+      <div class="food-card">
+        <div class="discount-badge">${discount}% OFF</div>
+        <img src="${f.img}" onerror="this.src='https://via.placeholder.com/400x200?text=Delicious+Food'">
+        <div class="food-info">
+          <div>
+            <div class="rating">★ ${f.rating}</div>
+            <div class="food-name">${f.name}</div>
+          </div>
+          <div>
+            <div class="price-row">
+              <span class="price">₹${f.price}</span>
+              <span class="old-price">₹${f.old}</span>
+            </div>
+            <button class="add-btn" onclick="addToCart(${f.id})">Add to Basket</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.changeRest = (id) => { selectedRest = id; render(); };
+
+  window.addToCart = (id) => {
+    const item = foods[selectedRest].find(f => f.id === id);
+    cart.push({...item, cartId: Date.now(), restId: selectedRest});
+    updateCart();
+    document.getElementById('cartSidebar').classList.add('open');
+  };
+
+  window.applyCoupon = () => {
+    const code = document.getElementById('couponInput').value.toUpperCase();
+    const msg = document.getElementById('couponMessage');
+    if(code === "SAVE10") {
+        appliedCoupon = { type: 'percent', val: 0.1 };
+        msg.style.color = "#28a745"; msg.textContent = "10% discount applied!";
+    } else if(code === "WELCOME50") {
+        appliedCoupon = { type: 'flat', val: 50 };
+        msg.style.color = "#28a745"; msg.textContent = "₹50 flat off applied!";
+    } else {
+        appliedCoupon = null;
+        msg.style.color = "red"; msg.textContent = "Invalid promo code.";
+    }
+    updateCart();
+  };
+
+  function updateCart() {
+    const list = document.getElementById('cartList');
+    if(cart.length === 0) {
+        list.innerHTML = `<p style="text-align:center; color:#999; margin-top:50px;">Your cart is empty.</p>`;
+    } else {
+        list.innerHTML = cart.map(item => `
+          <div class="cart-item">
+            <div>
+              <div style="font-weight:600; font-size:0.9rem;">${item.name}</div>
+              <div style="color:#ff5400; font-weight:700;">₹${item.price}</div>
+            </div>
+            <button onclick="removeFromCart(${item.cartId})" style="color:#ff3d00; background:none; font-size:18px;">✕</button>
+          </div>`).join('');
+    }
+
+    const subtotal = cart.reduce((s, i) => s + i.price, 0);
+    
+    // Delivery: ₹15 per KM for the furthest restaurant in the current cart
+    const activeRestIds = [...new Set(cart.map(i => i.restId))];
+    const maxDist = activeRestIds.length > 0 ? Math.max(...activeRestIds.map(id => restaurants.find(r => r.id === id).distance)) : 0;
+    const delivery = maxDist > 0 ? maxDist * 15 : 0;
+
+    let discount = 0;
+    if(appliedCoupon && subtotal > 0) {
+        discount = appliedCoupon.type === 'percent' ? subtotal * appliedCoupon.val : appliedCoupon.val;
+    }
+
+    document.getElementById('subtotal').textContent = `₹${subtotal}`;
+    document.getElementById('deliveryFee').textContent = `₹${delivery}`;
+    
+    const discRow = document.getElementById('discountRow');
+    if(discount > 0) {
+        discRow.style.display = 'flex';
+        document.getElementById('discountAmt').textContent = `-₹${Math.round(discount)}`;
+    } else {
+        discRow.style.display = 'none';
+    }
+
+    const total = Math.max(0, subtotal + delivery - discount);
+    document.getElementById('grandTotal').textContent = `₹${Math.round(total)}`;
+  }
+
+  window.removeFromCart = (cid) => { cart = cart.filter(i => i.cartId !== cid); updateCart(); };
+  
+  document.getElementById('cartToggle').onclick = () => document.getElementById('cartSidebar').classList.toggle('open');
+  document.getElementById('closeCart').onclick = () => document.getElementById('cartSidebar').classList.remove('open');
+  document.getElementById('logoutBtn').onclick = () => location.reload();
+  
+  document.getElementById('payBtn').onclick = () => { 
+    if(cart.length === 0) return alert("Your basket is empty!");
+    alert("Thank you! Your global feast is on the way. 🚀"); 
+    location.reload(); 
+  };
+</script>
+</body>
+</html>
